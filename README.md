@@ -68,6 +68,7 @@ What stage of the Cyber Kill Chain does the alerted activity violate?
 What kind of attack is this rule monitoring?
 
 
+
 Snort Rule #2
 
 alert tcp $EXTERNAL_NET $HTTP_PORTS -> $HOME_NET any (msg:"ET POLICY PE EXE or DLL Windows file download HTTP"; flow:established,to_client; flowbits:isnotset,ET.http.binary; flowbits:isnotset,ET.INFO.WindowsUpdate; file_data; content:"MZ"; within:2; byte_jump:4,58,relative,little; content:"PE|00 00|"; distance:-64; within:4; flowbits:set,ET.http.binary; metadata: former_category POLICY; reference:url,doc.emergingthreats.net/bin/view/Main/2018959; classtype:policy-violation; sid:2018959; rev:4; metadata:created_at 2014_08_19, updated_at 2017_02_01;)
@@ -82,6 +83,7 @@ What stage of the Cyber Kill Chain does the alerted activity violate?
 
 
 What kind of attack is this rule monitoring?
+
 
 
 Snort Rule #3
