@@ -1,0 +1,482 @@
+Network Security Homework
+Make a copy of this document to work in, and then fill out the solution for each prompt below. Save and submit this completed file as your Challenge deliverable.
+
+
+Part 1: Review Questions 
+
+Security Control Types
+
+The concept of defense in depth can be broken down into three security control types. Identify the security control type of each set of defense tactics.
+
+ Walls, bollards, fences, guard dogs, cameras, and lighting are what type of security control?
+
+Physical security controls
+
+
+Security awareness programs, BYOD policies, and ethical hiring practices are what type of security control?
+
+Administrative security control
+
+
+Encryption, biometric fingerprint readers, firewalls, endpoint security, and intrusion detection systems are what type of security control?
+
+Technical security controls
+
+
+Intrusion Detection and Attack Indicators
+
+What’s the difference between an IDS and an IPS?
+
+Both can detect an intrusion, but and IPS also moves to protect and respond. One is a monitoring system (IDS) and the other is a control system (IPS)
+
+
+What’s the difference between an indicator of attack (IOA) and an indicator of compromise (IOC)?
+
+IOC will indicate that an attack occurred, but and IOA alerts in real time. One is detecting the attack in real time (IOA) while the other shows the intrusion after the fact (IOC)
+
+
+The Cyber Kill Chain
+
+Name the seven stages of the cyber kill chain, and provide a brief example of each.
+
+Stage 1: 
+
+Reconnaissance(information gathering on Linkedin): Researching by gathering any information online via open sources.
+
+
+Stage 2:
+
+Weaponization (finding a weak point to infiltrate): After reconnaissance, the hacker uses what they have learned to create an attack against the target.
+
+
+Stage 3:
+
+Delivery (sending a virus via email): Releasing the weaponized attack via different types of social engineering.
+
+
+Stage 4:
+
+Exploration (phishing email link clicked): The act of compromising the target after identifying a vulnerability.
+
+
+Stage 5:
+
+Installation (virus installs malware, establishes presence): The installation of malware on the targets system.
+
+
+Stage 6:
+
+Command and Control (hacker using root on a infiltrated system): Attackers use command and control to remotely access the targets systems and control whatever they wish.
+
+
+Stage 7:
+
+Actions of Objectives (exfiltration of data): The final goal of the attackers attempt to accomplish what they set out to do on the targets system.
+
+
+Snort Rule Analysis
+
+Use the provided Snort rules to answer the following questions:
+
+Snort Rule #1
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET 5800:5820 (msg:"ET SCAN Potential VNC Scan 5800-5820"; flags:S,12; threshold: type both, track by_src, count 5, seconds 60; reference:url,doc.emergingthreats.net/2002910; classtype:attempted-recon; sid:2002910; rev:5; metadata:created_at 2010_07_30, updated_at 2010_07_30;)
+
+
+Break down the Sort rule header and explain what this rule does.
+
+creates an alert that applies to all tcp packets coming from any ip address on the external network across any port to ports 5800:5820 on the home network
+
+
+What stage of the cyber kill chain does the alerted activity violate?
+
+Reconnaissance
+
+
+What kind of attack is indicated?
+
+Potetial VNC Scan
+
+
+Snort Rule #2
+
+alert tcp $EXTERNAL_NET $HTTP_PORTS -> $HOME_NET any (msg:"ET POLICY PE EXE or DLL Windows file download HTTP"; flow:established,to_client; flowbits:isnotset,ET.http.binary; flowbits:isnotset,ET.INFO.WindowsUpdate; file_data; content:"MZ"; within:2; byte_jump:4,58,relative,little; content:"PE|00 00|"; distance:-64; within:4; flowbits:set,ET.http.binary; metadata: former_category POLICY; reference:url,doc.emergingthreats.net/bin/view/Main/2018959; classtype:policy-violation; sid:2018959; rev:4; metadata:created_at 2014_08_19, updated_at 2017_02_01;)
+
+
+Break down the Sort rule header and explain what this rule does.
+
+creates an alert that applies to all tcp packets coming from any ip address from the external network through HTTP_PORT 80 to any ports on the home network
+
+
+What layer of the defense in depth model does the alerted activity violate?
+
+Application
+
+
+What kind of attack is indicated?
+
+Potential virus hidden as windows update or DLL
+
+
+Snort Rule #3
+
+Your turn! Write a Snort rule that alerts when traffic is detected inbound on port 4444 to the local network on any port. Be sure to include the msg in the rule option.
+
+alert tcp any any -> $HOME_NET 4444 (msg:"Inbound Traffic Detected on Port 4444";)
+
+
+
+Part 2: “Drop Zone” Lab
+
+Set up.
+
+Log into the Azure firewalld machine using the following credentials:
+Username: sysadmin
+Password: cybersecurity
+
+Uninstall UFW.
+
+Before getting started, you should verify that you do not have any instances of UFW running. This will avoid conflicts with your firewalld service. This also ensures that firewalld will be your default firewall.
+
+Run the command that removes any running instance of UFW.
+
+$ sudo apt -y remove ufw
+
+
+Enable and start firewalld.
+
+By default, the firewalld service should be running. If not, then run the commands that enable and start firewalld upon boots and reboots.
+
+$ sudo systemctl enable firewalld
+$ sudo systemctl start firewalld
+
+
+Note: This will ensure that firewalld remains active after each reboot.
+
+
+Confirm that the service is running.
+
+Run the command that checks whether the firewalld service is up and running.
+  
+$ sudo /etc/init.d/firewalld status
+
+
+List all firewall rules currently configured.
+
+Next, list all currently configured firewall rules. This will give you a good idea of what’s currently configured and save you time in the long run by ensuring that you don’t duplicate work that’s already done.
+
+Run the command that lists all currently configured firewall rules:
+
+$ firewall-cmd --direct --get-all-rule
+
+
+Take note of what zones and settings are configured. You may need to remove unneeded services and settings.
+
+List all supported service types that can be enabled.
+
+Run the command that lists all currently supported services to find out whether the service you need is available.
+
+$ sudo firewall-cmd --get-services
+
+
+Notice that the home and drop zones are created by default.
+
+Zone views.
+
+Run the command that lists all currently configured zones.
+
+$ sudo firewall-cmd --list-all-zones
+
+
+Notice that the public and drop zones are created by default. Therefore, you will need to create zones for web, sales, and mail.
+
+Create zones for web, sales, and mail.
+
+Run the commands that create web, sales, and mail zones.
+
+$ sudo firewall-cmd --permanent --new-zone=Web
+$ sudo firewall-cmd --permanent --new-zone=Sales
+$ sudo firewall-cmd --permanent --new-zone=Mail
+
+
+Set the zones to their designated interfaces.
+
+Run the commands that set your eth interfaces to your zones.
+
+$ sudo firewall-cmd --zone=Web --add-interface=eth0
+$ sudo firewall-cmd --zone=Sales --add-interface=eth0
+$ sudo firewall-cmd --zone=Mail --add-interface=eth0
+$ sudo firewall-cmd --zone=public --change-interface=eth0
+
+
+Add services to the active zones.
+
+Run the commands that add services to the public zone, the web zone, the sales zone, and the mail zone.
+
+public:
+
+$ sudo firewall-cmd --zone=public --add-service=http --permanent
+$ sudo firewall-cmd --zone=public --add-service=https --permanent
+$ sudo firewall-cmd --zone=public --add-service=smtp --permanent
+$ sudo firewall-cmd --zone=public --add-service=pop3 --permanent
+
+
+web:
+
+$ sudo firewall-cmd --zone=Web --add-service=http --permanent 
+$ sudo firewall-cmd --zone=Web --add-service=https --permanent 
+$ sudo firewall-cmd --zone=Web --add-service=smtp --permanent 
+$ sudo firewall-cmd --zone=Web --add-service=pop3 --permanent
+
+
+sales:
+
+$ sudo firewall-cmd --zone=Sales --add-service=http --permanent 
+$ sudo firewall-cmd --zone=Sales --add-service=https --permanent 
+$ sudo firewall-cmd --zone=Sales --add-service=smtp --permanent 
+$ sudo firewall-cmd --zone=Sales --add-service=pop3 --permanent
+
+
+mail:
+
+$ sudo firewall-cmd --zone=Mail --add-service=http --permanent 
+$ sudo firewall-cmd --zone=Mail --add-service=https --permanent 
+$ sudo firewall-cmd --zone=Mail --add-service=smtp --permanent 
+$ sudo firewall-cmd --zone=Mail --add-service=pop3 --permanent
+
+
+What is the status of http, https, smtp and pop3?
+
+4
+
+
+Add your adversaries to the drop zone.
+
+Run the command that will add all current and any future blacklisted IPs to the drop zone.
+
+$ sudo firewall-cmd --zone=drop --add-rich-rule=”rule family=’ipv4’ source address=’10.10.10.10’ reject”
+
+
+Make rules permanent, then reload them.
+
+It's good practice to ensure that your firewalld installation remains nailed up and retains its services across reboots. This helps ensure that the network remains secure after unplanned outages such as power failures.
+
+Run the command that reloads the firewalld configurations and writes it to memory:
+
+$ sudo firewall-cmd --runtime-to-permanent
+
+
+View active zones.
+
+Now, provide truncated listings of all currently active zones. This is a good time to verify your zone settings.
+
+Run the command that displays all zone services.
+
+$ sudo firewall-cmd --list-services
+
+
+Block an IP address.
+
+Use a rich-rule that blocks the IP address 138.138.0.3 on your public zone.
+
+$ sudo firewall-cmd --zone=drop --add-rich-rule=”rule family=’ipv4’ source address=’138.138.0.3’ reject”
+
+
+Block ping/ICMP requests.
+
+Harden your network against ping scans by blocking icmp ehco replies.
+
+Run the command that blocks pings and icmp requests in your public zone.
+
+$ sudo firewall-cmd --zone=public --add-icmp-block=echo-request
+
+
+Rule check.
+
+Now that you've set up your brand new firewalld installation, it's time to verify that all of the settings have taken effect.
+
+Run the command that lists all of the rule settings. Do one command at a time for each zone.
+
+$ Sudo firewall-cmd --zone=Web --list-all 
+$ sudo firewall-cmd --zone=Mail --list-all 
+$ sudo firewall-cmd --zone=Sales --list-all 
+$ sudo firewall-cmd --zone=public --list-all 
+$ sudo firewall-cmd --zone=drop --list-all
+
+
+Are all of the rules in place? If not, then go back and make the necessary modifications before checking again.
+
+Congratulations! You have successfully configured and deployed a fully comprehensive firewalld installation.
+
+
+Part 3: IDS, IPS, DiD and Firewalls
+
+Now, you’ll work on another lab. Before you start, complete the following review questions.
+
+IDS vs. IPS Systems
+
+Name and define two ways an IDS connects to a network.
+
+Network TAP: connected east-west of a network and monitors all innound and outbound data.
+
+  
+SPAN: connected east-west of a network and copies all network data and sends them to another port where it can be analyzed by an administrator when something has been flagged.
+
+
+Describe how an IPS connects to a network.
+
+Inline with the flow of data, inbetween the firewall and the network switch
+
+
+What type of IDS compares patterns of traffic to predefined signatures and is unable to detect zero-day attacks?
+
+Signature based intrusion detection system
+
+
+What type of IDS is beneficial for detecting all suspicious traffic that deviates from the well-known baseline and is excellent at detecting when an attacker probes or sweeps a network?
+
+Anomaly based intrusion detection system
+
+
+Defense in Depth
+
+For each of the following scenarios, provide the layer of defense in depth that applies:
+
+A criminal hacker tailgates an employee through an exterior door into a secured facility, explaining that they forgot their badge at home.
+
+Policies, Procedures and Perimeter
+
+
+A zero-day goes undetected by antivirus software.
+
+Application
+
+
+A criminal successfully gains access to HR’s database.
+
+Data
+
+
+A criminal hacker exploits a vulnerability within an operating system.
+
+Application
+
+
+A hacktivist organization successfully performs a DDoS attack, taking down a government website.
+
+Network
+
+
+Data is classified at the wrong classification level.
+
+Policies and Procedures, awareness
+
+
+A state-sponsored hacker group successfully firewalked an organization to produce a list of active services on an email server.
+
+Application
+
+
+Name one method of protecting data-at-rest from being readable on hard drive.
+
+Encryption
+
+
+Name one method of protecting data-in-transit.
+
+Public Key Encryption/Cryptography
+
+
+What technology could provide law enforcement with the ability to track and recover a stolen laptop?
+
+GPS tracking
+
+
+How could you prevent an attacker from booting a stolen laptop using an external hard drive?
+
+2-Factor Authentication; firmware password, ecrypted
+
+
+Firewall Architectures and Methodologies
+
+Which type of firewall verifies the three-way TCP handshake? TCP handshake checks are designed to ensure that session packets are from legitimate sources.
+
+Circuit-level gateways
+
+
+Which type of firewall considers the connection as a whole? Meaning, instead of considering only individual packets, these firewalls consider whole streams of packets at one time.
+
+Stateful Firewalls
+
+
+Which type of firewall intercepts all traffic prior to forwarding it to its final destination? In a sense, these firewalls act on behalf of the recipient by ensuring the traffic is safe prior to forwarding it.
+
+Application gateways
+
+
+Which type of firewall examines data within a packet as it progresses through a network interface by examining source and destination IP address, port number, and packet type—all without opening the packet to inspect its contents?
+
+Stateless/Packet Filtering firewalls
+
+
+Which type of firewall filters solely based on source and destination MAC address?
+
+MAC firewalls
+
+
+
+Optional Additional Challenge Lab: “Green Eggs & SPAM”
+
+In this activity, you will target spam, uncover its whereabouts, and attempt to discover the intent of the attacker.
+ 
+You will assume the role of a junior security administrator working for the Department of Technology for the State of California.
+ 
+As a junior administrator, your primary role is to perform the initial triage of alert data: the initial investigation and analysis followed by an escalation of high-priority alerts to senior incident handlers for further review.
+ 
+You will work as part of a Computer and Incident Response Team (CIRT), responsible for compiling threat intelligence as part of your incident report.
+
+Threat Intelligence Card
+
+Note: Log in to the Security Onion VM, and use the following indicator of attack to complete this portion of the assignment. 
+
+
+Locate the indicator of attack in Sguil based off of the following:
+
+Source IP/port: 188.124.9.56:80
+Destination address/port: 192.168.3.35:1035
+Event message: ET TROJAN JS/Nemucod.M.gen downloading EXE payload
+
+Answer the following questions:
+
+What was the indicator of an attack? (Hint: What do the details reveal?)
+
+It reveals that a trojan malware via an EXE file received through an email is being download on the home network
+
+
+What was the adversarial motivation (purpose of the attack)?
+
+Steal private information
+
+
+Describe observations and indicators that may be related to the perpetrators of the intrusion. Categorize your insights according to the appropriate stage of the cyber kill chain, as structured in the following table:
+
+TTP                                                                                            Example                                                                                            Findings
+Reconnaissance                                                                  How did the attacker locate the victim?                                                                    Passive Reconnaissance
+Weaponization                                                                          What was downloaded?                                                                                    Trojan Malware
+Delivery                                                                              How was it downloaded?                                                                              Email through EXE files
+Exploitation                                                                        What does the exploit do?                                                                            Steals private information
+Installation                                                                        How is the exploit installed?                                              The malware is installed in the background when the user opens the PDF file
+Command & Control (C2)                                                How does the attacker gain control of the remote machine?                      The installed malware communicates with the attackers network giving them access to the system
+Actions on Objectives                                        What does the software that the attacker sent do to complete its tasks?                                   Compresses the files before sending it back to the attacker
+
+
+
+What are your recommended mitigation strategies?
+
+Have an intrusion detection system to detect any anomalies coming into and out of the network. Additionally, have an intrusion prevention system set up to detect and mitigate any threats in real time.
+
+
+List your third-party references.
+
+www.certego.net/en/news/italian-spam-campaigns-using-js-nemucod-downloader/
+
